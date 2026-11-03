@@ -27,8 +27,8 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Site Settings</h2>
           <form action={updateSetting} className="grid grid-cols-1 md:grid-cols-2 gap-4" method="POST">
-            {[['tagline', 'Tagline'], ['about', 'About'], ['location', 'Location'],
-              ['contact_email', 'Contact Email'], ['photo_url', 'Photo URL'], ['linkedin_url', 'LinkedIn URL']] as [string, string][]}.map(([key, label]) => (
+            {([['tagline', 'Tagline'], ['about', 'About'], ['location', 'Location'],
+              ['contact_email', 'Contact Email'], ['photo_url', 'Photo URL'], ['linkedin_url', 'LinkedIn URL']] as [string, string][]).map(([key, label]) => (
               <div key={key} className="flex flex-col">
                 <label className="text-xs font-medium text-slate-500 mb-1">{label}</label>
                 <input name="key" type="hidden" defaultValue={key} />
