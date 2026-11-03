@@ -1,5 +1,7 @@
 import { sql } from '@vercel/postgres'
 
+const field = (fd: FormData, key: string) => (fd.get(key) as string | null) ?? null
+
 export async function getSettings() {
   const res = await sql`SELECT key, value FROM settings`
   const obj: Record<string, string> = {}
@@ -22,7 +24,7 @@ export async function getEducation() {
 export async function addEducation(fd: FormData) {
   await sql`
     INSERT INTO education (institution, degree, cgpa, expected_grad, details)
-    VALUES (${fd.get('institution')}, ${fd.get('degree')}, ${fd.get('cgpa')}, ${fd.get('expected_grad')}, ${fd.get('details')})
+    VALUES (${field(fd, 'institution')}, ${field(fd, 'degree')}, ${field(fd, 'cgpa')}, ${field(fd, 'expected_grad')}, ${field(fd, 'details')})
   `
 }
 
@@ -38,7 +40,7 @@ export async function getExperience() {
 export async function addExperience(fd: FormData) {
   await sql`
     INSERT INTO experience (role_title, organization, start_date, end_date, description)
-    VALUES (${fd.get('role_title')}, ${fd.get('organization')}, ${fd.get('start_date')}, ${fd.get('end_date')}, ${fd.get('description')})
+    VALUES (${field(fd, 'role_title')}, ${field(fd, 'organization')}, ${field(fd, 'start_date')}, ${field(fd, 'end_date')}, ${field(fd, 'description')})
   `
 }
 
@@ -54,7 +56,7 @@ export async function getSkills() {
 export async function addSkill(fd: FormData) {
   await sql`
     INSERT INTO skills (name, category, level)
-    VALUES (${fd.get('name')}, ${fd.get('category')}, ${fd.get('level')})
+    VALUES (${field(fd, 'name')}, ${field(fd, 'category')}, ${field(fd, 'level')})
   `
 }
 
@@ -70,9 +72,11 @@ export async function getProjects() {
 export async function addProject(fd: FormData) {
   const toolsRaw = fd.get('tools') as string
   const tools = toolsRaw ? toolsRaw.split(',').map((t) => t.trim()).filter(Boolean) : []
+  // @vercel/postgres can't bind a JS array directly, so send a Postgres array literal
+  const toolsLiteral = '{' + tools.map((t) => '"' + t.replace(/(["\\])/g, '\\$1') + '"').join(',') + '}'
   await sql`
     INSERT INTO projects (title, description, tools, image_url, date, live_link, github_link)
-    VALUES (${fd.get('title')}, ${fd.get('description')}, ${tools}, ${fd.get('image_url')}, ${fd.get('date')}, ${fd.get('live_link')}, ${fd.get('github_link')})
+    VALUES (${field(fd, 'title')}, ${field(fd, 'description')}, ${toolsLiteral}::text[], ${field(fd, 'image_url')}, ${field(fd, 'date')}, ${field(fd, 'live_link')}, ${field(fd, 'github_link')})
   `
 }
 
