@@ -10,7 +10,5 @@ export async function login(formData: FormData) {
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     })
-    return { success: true }
   }
-  return { success: false, error: 'Wrong password' }
 }
