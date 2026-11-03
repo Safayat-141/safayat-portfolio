@@ -1,3 +1,5 @@
+import { Card } from '@/components/ui'
+
 export default function ProjectCard({ item }: any) {
   return (
     <Card className="p-0 overflow-hidden flex flex-col h-full">
