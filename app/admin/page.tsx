@@ -1,3 +1,5 @@
+import { Card } from '@/components/ui'
+import ConfirmButton from '@/components/ConfirmButton'
 import { getSettings, getEducation, getExperience, getSkills, getProjects } from '@/lib/db'
 import {
   updateSetting,
@@ -6,6 +8,15 @@ import {
   handleAddSkill, handleDeleteSkill,
   handleAddProject, handleDeleteProject,
 } from '@/app/admin/actions'
+
+const settingFields: [string, string][] = [
+  ['tagline', 'Tagline'],
+  ['about', 'About'],
+  ['location', 'Location'],
+  ['contact_email', 'Contact Email'],
+  ['photo_url', 'Photo URL'],
+  ['linkedin_url', 'LinkedIn URL'],
+]
 
 export default async function AdminPage({ searchParams }: { searchParams: { tab?: string } }) {
   const tab = searchParams.tab || 'settings'
@@ -27,8 +38,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Site Settings</h2>
           <form action={updateSetting} className="grid grid-cols-1 md:grid-cols-2 gap-4" method="POST">
-            {([['tagline', 'Tagline'], ['about', 'About'], ['location', 'Location'],
-              ['contact_email', 'Contact Email'], ['photo_url', 'Photo URL'], ['linkedin_url', 'LinkedIn URL']] as [string, string][]).map(([key, label]) => (
+            {settingFields.map(([key, label]) => (
               <div key={key} className="flex flex-col">
                 <label className="text-xs font-medium text-slate-500 mb-1">{label}</label>
                 <input name="key" type="hidden" defaultValue={key} />
@@ -59,9 +69,9 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
               education.map((e: any) => (
                 <li key={e.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50">
                   <span className="text-sm text-slate-700">{e.institution} — {e.degree} (CGPA: {e.cgpa})</span>
-                  <form action={handleDeleteEducation} method="POST" onSubmit="return confirm('Delete this education entry?')" style={{ display: 'inline' }}>
+                  <form action={handleDeleteEducation} method="POST" style={{ display: 'inline' }}>
                     <input type="hidden" name="id" value={e.id} />
-                    <button type="submit" className="text-xs text-red-500 hover:underline">Delete</button>
+                    <ConfirmButton message="Delete this education entry?" className="text-xs text-red-500 hover:underline">Delete</ConfirmButton>
                   </form>
                 </li>
               ))
@@ -86,7 +96,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                 <input name="start_date" placeholder="Start Date" className="Input" required />
                 <input name="end_date" placeholder="End Date" className="Input" />
               </div>
-              <textarea name="description" rows="2" placeholder="What did you do?" className="Input" required />
+              <textarea name="description" rows={2} placeholder="What did you do?" className="Input" required />
               <button className="Button w-full">Add Experience</button>
             </form>
           </div>
@@ -100,9 +110,9 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                   </div>
                   <p className="text-sm text-slate-600 mb-1">{e.organization}</p>
                   <p className="text-xs text-slate-500">{e.description}</p>
-                  <form action={handleDeleteExperience} method="POST" onSubmit="return confirm('Delete this experience entry?')" style={{ display: 'inline', marginTop: '4px' }}>
+                  <form action={handleDeleteExperience} method="POST" style={{ display: 'inline', marginTop: '4px' }}>
                     <input type="hidden" name="id" value={e.id} />
-                    <button type="submit" className="text-xs text-red-500 hover:underline">Delete</button>
+                    <ConfirmButton message="Delete this experience entry?" className="text-xs text-red-500 hover:underline">Delete</ConfirmButton>
                   </form>
                 </li>
               ))
@@ -130,9 +140,9 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
               skills.map((s: any) => (
                 <li key={s.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-white">
                   <span className="text-sm text-slate-700">{s.name}</span>
-                  <form action={handleDeleteSkill} method="POST" onSubmit="return confirm('Delete this skill?')" style={{ display: 'inline' }}>
+                  <form action={handleDeleteSkill} method="POST" style={{ display: 'inline' }}>
                     <input type="hidden" name="id" value={s.id} />
-                    <button type="submit" className="text-xs text-red-500 hover:underline">Delete</button>
+                    <ConfirmButton message="Delete this skill?" className="text-xs text-red-500 hover:underline">Delete</ConfirmButton>
                   </form>
                 </li>
               ))
@@ -151,7 +161,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
             <form action={handleAddProject} className="space-y-4" method="POST">
               <input name="title" placeholder="Project Title" className="Input" required />
               <input name="image_url" placeholder="Image URL" className="Input" />
-              <textarea name="description" rows="2" placeholder="Short description" className="Input" required />
+              <textarea name="description" rows={2} placeholder="Short description" className="Input" required />
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <input name="tools" placeholder="Tools (comma separated)" className="Input" />
                 <input name="date" placeholder="Date" className="Input" />
@@ -174,9 +184,9 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                       ))}
                     </div>
                   )}
-                  <form action={handleDeleteProject} method="POST" onSubmit="return confirm('Delete this project?')" style={{ display: 'inline' }}>
+                  <form action={handleDeleteProject} method="POST" style={{ display: 'inline' }}>
                     <input type="hidden" name="id" value={p.id} />
-                    <button type="submit" className="text-xs text-red-500 hover:underline">Delete</button>
+                    <ConfirmButton message="Delete this project?" className="text-xs text-red-500 hover:underline">Delete</ConfirmButton>
                   </form>
                 </li>
               ))
@@ -189,5 +199,3 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
     </div>
   )
 }
-
-import { Card } from '@/components/ui'
