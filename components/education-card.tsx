@@ -1,3 +1,5 @@
+import { Card, Badge } from '@/components/ui'
+
 export default function EducationCard({ item }: any) {
   return (
     <Card className="p-5">
