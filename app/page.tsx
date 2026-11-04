@@ -25,7 +25,7 @@ export default async function Home() {
     skills = await getSkills()
     projects = await getProjects()
   } catch (err) {
-    console.log('Database not ready yet.')
+    console.error('Failed to load portfolio data:', err)
   }
 
   return (
@@ -85,13 +85,19 @@ export default async function Home() {
       <Section id="contact" className="text-center">
         <SectionTitle title="Contact" />
         <Card className="max-w-md mx-auto p-8">
-          <p className="text-slate-600 mb-4">{settings.contact_email || 'you@example.com'}</p>
-          <p className="text-slate-500 text-sm">{settings.location || 'Dhaka, Bangladesh'}</p>
+          {settings.contact_email ? (
+            <a href={`mailto:${settings.contact_email}`} className="text-slate-600 hover:text-blue-600 block mb-4">
+              {settings.contact_email}
+            </a>
+          ) : (
+            <p className="text-slate-400 mb-4">Contact details coming soon.</p>
+          )}
+          {settings.location && <p className="text-slate-500 text-sm">{settings.location}</p>}
         </Card>
       </Section>
 
       <footer className="py-10 text-center text-slate-400 text-sm border-t border-slate-200">
-        &copy; {new Date().getFullYear()} Your Name. Built with Next.js & Vercel.
+        &copy; {new Date().getFullYear()} {settings.name || 'Your Name'}. Built with Next.js &amp; Vercel.
       </footer>
     </main>
   )
