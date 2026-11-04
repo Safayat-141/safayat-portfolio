@@ -1,11 +1,13 @@
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { COOKIE_NAME, verifySession } from './session'
 
 export async function isAdmin() {
   const c = await cookies()
-  return c.get('admin_session')?.value === process.env.ADMIN_SECRET
+  return verifySession(c.get(COOKIE_NAME)?.value)
 }
 
-export async function logout() {
-  const c = await cookies()
-  c.delete('admin_session')
+/** Call at the top of every admin Server Action (defense in depth beyond middleware). */
+export async function requireAdmin() {
+  if (!(await isAdmin())) redirect('/admin/login')
 }
