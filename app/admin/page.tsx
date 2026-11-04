@@ -8,15 +8,7 @@ import {
   handleAddSkill, handleDeleteSkill,
   handleAddProject, handleDeleteProject,
 } from '@/app/admin/actions'
-
-const settingFields: [string, string][] = [
-  ['tagline', 'Tagline'],
-  ['about', 'About'],
-  ['location', 'Location'],
-  ['contact_email', 'Contact Email'],
-  ['photo_url', 'Photo URL'],
-  ['linkedin_url', 'LinkedIn URL'],
-]
+import { SETTING_FIELDS } from '@/lib/settings'
 
 export default async function AdminPage({ searchParams }: { searchParams: { tab?: string } }) {
   const tab = searchParams.tab || 'settings'
@@ -37,16 +29,22 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
       {tab === 'settings' && (
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Site Settings</h2>
-          <form action={updateSetting} className="grid grid-cols-1 md:grid-cols-2 gap-4" method="POST">
-            {settingFields.map(([key, label]) => (
-              <div key={key} className="flex flex-col">
-                <label className="text-xs font-medium text-slate-500 mb-1">{label}</label>
-                <input name="key" type="hidden" defaultValue={key} />
-                <input name="value" defaultValue={settings[key] || ''} className="Input" />
-              </div>
+          <div className="space-y-5">
+            {SETTING_FIELDS.map(([key, label, kind]) => (
+              <form key={key} action={updateSetting} className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-500">{label}</label>
+                <input name="key" type="hidden" value={key} />
+                <div className="flex gap-2 items-start">
+                  {kind === 'textarea' ? (
+                    <textarea name="value" rows={4} defaultValue={settings[key] || ''} className="Input" />
+                  ) : (
+                    <input name="value" defaultValue={settings[key] || ''} className="Input" />
+                  )}
+                  <button className="Button">Save</button>
+                </div>
+              </form>
             ))}
-            <button className="md:col-span-2 Button">Save Settings</button>
-          </form>
+          </div>
         </Card>
       )}
 
