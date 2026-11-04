@@ -12,14 +12,14 @@ Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, and **
 - **Database-driven content** — everything shown on the site is read from Postgres.
 - **Admin dashboard** (`/admin`) — add and delete education, experience, skills, and projects, and edit site settings (tagline, about text, location, email, photo URL, LinkedIn URL).
 - **Password login** — a single admin password, checked against an environment variable. No user accounts.
-- **Incremental static regeneration** — the home page is cached and revalidated every 60 seconds.
+- **Incremental static regeneration** — the home page is cached, revalidated every 60 seconds and refreshed immediately after any admin change.
 - **Graceful empty states** — if the database is unreachable or empty, the page still renders with placeholder text.
 
 ## Tech stack
 
 | Layer      | Choice                                   |
 | ---------- | ---------------------------------------- |
-| Framework  | Next.js 14.2 (App Router, Server Actions) |
+| Framework  | Next.js 14.2.35 (App Router, Server Actions) |
 | Language   | TypeScript (strict mode)                 |
 | Styling    | Tailwind CSS 3                           |
 | Database   | Vercel Postgres (`@vercel/postgres`)     |
@@ -36,20 +36,23 @@ Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, and **
 │   └── admin/
 │       ├── layout.tsx        # Admin navigation bar
 │       ├── page.tsx          # Dashboard, tabbed via ?tab=
-│       ├── actions.ts        # Server Actions: add/delete/update handlers
+│       ├── actions.ts        # Server Actions: add/delete/update + logout
 │       └── login/
-│           ├── page.tsx      # Login form
-│           └── action.ts     # Login Server Action (sets session cookie)
+│           ├── page.tsx      # Login form (shows an error on a wrong password)
+│           └── action.ts     # Login Server Action (sets signed session cookie)
 ├── components/               # Presentational components
 │   ├── hero.tsx, nav.tsx, section.tsx, section-title.tsx
 │   ├── education-card.tsx, experience-card.tsx
 │   ├── skill-badge.tsx, project-card.tsx
+│   ├── admin-nav.tsx         # Client component: admin tabs (active highlight) + logout
 │   ├── ConfirmButton.tsx     # Client component: confirm() before delete
 │   └── ui.tsx                # Card, Badge, Button, Input, Textarea, cn()
 ├── lib/
 │   ├── db.ts                 # All SQL queries
-│   └── auth.ts               # isAdmin() and logout() helpers
-├── middleware.ts             # Guards /admin/* routes
+│   ├── session.ts            # Signed session cookie + password check (edge-safe)
+│   ├── auth.ts               # isAdmin() / requireAdmin() for server code
+│   └── settings.ts           # List of editable site settings
+├── middleware.ts             # Guards /admin/* routes (except /admin/login)
 ├── next.config.js
 ├── tailwind.config.ts
 ├── postcss.config.js
@@ -60,13 +63,15 @@ Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, and **
 
 **Reading content.** `app/page.tsx` is a Server Component. It calls the query helpers in `lib/db.ts` to load settings, education, experience, skills, and projects, then renders them with the components in `components/`. The page uses `revalidate = 60`, so Vercel serves a cached copy and refreshes it in the background at most once a minute.
 
-**Editing content.** The admin dashboard at `/admin` uses plain HTML forms that post to Server Actions in `app/admin/actions.ts`. Each action calls a function in `lib/db.ts` and then redirects back to the relevant tab.
+**Editing content.** The admin dashboard at `/admin` uses plain HTML forms that post to Server Actions in `app/admin/actions.ts`. Every action first calls `requireAdmin()`, writes to the database through `lib/db.ts`, refreshes the public page with `revalidatePath('/')`, and redirects back to the relevant tab. Each site setting has its own form and Save button.
 
 **Authentication.** Two environment variables control access:
 
-1. The visitor submits a password on `/admin/login`.
-2. If it matches `ADMIN_PASSWORD`, the server sets an `admin_session` cookie (HTTP-only, 7 days) whose value is `ADMIN_SECRET`.
-3. `middleware.ts` runs on every `/admin/*` request and compares the cookie to `ADMIN_SECRET`.
+1. The visitor submits a password on `/admin/login`. It is compared in constant time against `ADMIN_PASSWORD`.
+2. On success the server sets an `admin_session` cookie (HTTP-only, `SameSite=Lax`, `Secure` in production, 7 days). The cookie holds an expiry time plus an HMAC signature made with `ADMIN_SECRET`; the secret itself is never sent to the browser.
+3. `middleware.ts` verifies that signature on every `/admin/*` request (except `/admin/login`), and each Server Action checks it again.
+4. If `ADMIN_SECRET` or `ADMIN_PASSWORD` is missing, login is impossible and `/admin` stays locked (fail closed).
+5. A wrong password is delayed by one second to slow down brute-force attempts.
 
 ## Environment variables
 
@@ -139,6 +144,7 @@ The `settings` table is a key/value store. The site reads these keys:
 
 | Key             | Used for                      |
 | --------------- | ----------------------------- |
+| `name`          | Hero heading, footer, page title |
 | `tagline`       | Line under the name in the hero |
 | `about`         | About Me paragraph            |
 | `location`      | Hero and Contact section      |
@@ -192,14 +198,15 @@ First-time setup:
 
 1. Go to `/admin` and sign in.
 2. Pick a tab (Settings, Education, Experience, Skills, Projects).
-3. Add or delete entries.
-4. The public page picks up changes within about a minute.
+3. Add or delete entries, or save each setting with its own Save button.
+4. The public page is refreshed immediately after each change.
 
 ## Security notes
 
 - Keep `ADMIN_PASSWORD` and `ADMIN_SECRET` different, long, and unguessable.
 - Rotate `ADMIN_SECRET` if you ever suspect it leaked; doing so signs out all sessions.
 - Keep Next.js up to date. Security fixes are released regularly in the 14.x line.
+- Login attempts are only slowed down, not rate-limited. Use a long, random `ADMIN_PASSWORD`.
 
 ## License
 
