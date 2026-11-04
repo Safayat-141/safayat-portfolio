@@ -1,5 +1,6 @@
 import './globals.css'
 import { getSettings } from '@/lib/db'
+import { Analytics } from '@vercel/analytics/next'
 
 export async function generateMetadata() {
   let name = ''
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }
