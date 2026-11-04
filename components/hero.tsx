@@ -1,6 +1,6 @@
 export default function Hero({ settings }: any) {
   return (
-    <header className="text-center mb-12">
+    <header className="text-center mb-12 pt-8">
       {settings.photo_url ? (
         <img
           src={settings.photo_url}
@@ -12,9 +12,9 @@ export default function Hero({ settings }: any) {
           ?
         </div>
       )}
-      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Your Name</h1>
-      <p className="text-lg text-slate-600 mb-3">{settings.tagline || 'Mathematics Undergraduate | Aspiring Analyst'}</p>
-      <p className="text-sm text-slate-500 mb-6">{settings.location || 'Dhaka, Bangladesh'}</p>
+      <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">{settings.name || 'Your Name'}</h1>
+      <p className="text-lg text-slate-600 mb-3">{settings.tagline || 'Mathematics Undergraduate'}</p>
+      {settings.location && <p className="text-sm text-slate-500 mb-6">{settings.location}</p>}
       <div className="flex flex-wrap justify-center gap-3">
         {settings.contact_email && (
           <a href={`mailto:${settings.contact_email}`} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
